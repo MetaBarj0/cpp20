@@ -19,3 +19,30 @@ They provide better and more explicit error messages for generic template meta p
 ### Playing with examples
 
 Got to src/chapter_1_concepts/tests.cpp to get a grasp on the matter.
+
+### specific remarks
+
+Table 1.1
+
+```cpp
+template<C1 T>
+requires C2<T>
+C3 auto Fun(C4 auto param) requires C5<T>)
+```
+
+| ref | type constraint          | when to use                                                                                           |
+|----------------------------------------------------------------------------------------------------------------------------------------|
+| C1  | type constraint          | Use this when you already know that a template type parameter has a certain constraint                |
+| C2  | requires clause          | Use this when you need to add constraints for multiple template type or non-type template parameters. |
+| C5  | trailing requires clause | Use this for a method in a class template to constrain it based on the class template parameters.     |
+
+### 1.5 Body of a require expression
+
+Four different forms:
+
+- Simple requirement   (SR)
+- Nested requirement   (NR)
+- Compound requirement (CR)
+- type requirement     (TR)
+
+Go to the code to see how those requirements are hande in an ad-hoc constraint expression.
