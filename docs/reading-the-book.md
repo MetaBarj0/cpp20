@@ -57,3 +57,11 @@ concept MyConcept /*concept name*/ =
   (std::is_class_v<T>    // requirement
   || std::is_enum_v<T>); // requirement
 ```
+
+### 1.8 testing requirements
+
+They are a evaluated at compile time. The compiler is sufficient to test them, no need of a test framework.
+A bunch of well thought static_assert should do the job.
+Actually, the Addable concept studied in the book can be implemented using some sort of TDD at compile time.
+
+TODO: write an article on the matter

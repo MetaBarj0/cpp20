@@ -88,7 +88,7 @@ TEST_CASE("requires expressions") {
 }
 
 template <typename... Args>
-concept IsAbleToAdd = requires(Args... args) {
+concept Addable = requires(Args... args) {
   (... + args);
   requires are_same_v<Args...>;
   requires sizeof...(Args) > 1;
@@ -100,7 +100,7 @@ concept IsAbleToAdd = requires(Args... args) {
 
 struct concept_data {
   template <typename... Args>
-  requires IsAbleToAdd<Args...>
+  requires Addable<Args...>
   auto add(Args &&...args) { return (... + args); }
 };
 

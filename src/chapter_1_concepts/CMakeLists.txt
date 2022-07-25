@@ -8,7 +8,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Catch2)
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
 
-add_executable(chapter_1_concepts "tests.cpp")
+add_executable(chapter_1_concepts tests.cpp test_drive_concept.cpp)
 
 set_property(TARGET chapter_1_concepts PROPERTY CXX_STANDARD 20)
 
