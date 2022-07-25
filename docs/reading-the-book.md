@@ -46,3 +46,14 @@ Four different forms:
 - type requirement     (TR)
 
 Go to the code to see how those requirements are hande in an ad-hoc constraint expression.
+
+### 1.7 defining a concept
+
+```cpp
+// concept head
+template<typename T, typename U>
+concept MyConcept /*concept name*/ =
+  std::same_as<T, U> &&  // requirement
+  (std::is_class_v<T>    // requirement
+  || std::is_enum_v<T>); // requirement
+```

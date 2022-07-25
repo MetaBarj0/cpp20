@@ -86,3 +86,33 @@ TEST_CASE("requires expressions") {
   REQUIRE(y == 5);
   // REQUIRE(z == 5.0);
 }
+
+template <typename... Args>
+concept IsAbleToAdd = requires(Args... args) {
+  (... + args);
+  requires are_same_v<Args...>;
+  requires sizeof...(Args) > 1;
+  { (... + args) }
+  noexcept->std::same_as<first_arg_t<Args...>>;
+  typename first_arg<Args...>::type;
+  first_arg<Args...>::value;
+};
+
+struct concept_data {
+  template <typename... Args>
+  requires IsAbleToAdd<Args...>
+  auto add(Args &&...args) { return (... + args); }
+};
+
+TEST_CASE("creating a concept") {
+  concept_data data;
+
+  const int x = data.add(2, 3, 4, 5);
+  const int y = data.add(2, 3);
+  // won't compile
+  // const int z = data.add(2, 3.0);
+
+  REQUIRE(x == 14);
+  REQUIRE(y == 5);
+  // REQUIRE(z == 5.0);
+}
