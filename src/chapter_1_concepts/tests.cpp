@@ -1,3 +1,4 @@
+#include <array>
 #include <catch2/catch_test_macros.hpp>
 #include <concepts>
 #include <type_traits>
@@ -89,7 +90,7 @@ TEST_CASE("requires expressions") {
 
 template <typename Arg>
 concept Addable = requires(Arg arg) {
-  { (arg + arg) }
+  { arg + arg }
   noexcept->std::same_as<Arg>;
 };
 
@@ -116,4 +117,42 @@ TEST_CASE("creating a concept") {
   REQUIRE(x == 14);
   REQUIRE(y == 5);
   // REQUIRE(z == 5.0);
+}
+
+struct constexpr_function_in_concept_data {
+  // consteval function with default argument for template type parameter. Easy
+  // usage in the constraint definition.
+  // Moreover, keep the template type instance in an unevaluated context.
+  static consteval auto get_size(const auto &container = {}) {
+    return container.size();
+  }
+};
+
+template <typename T, std::size_t N>
+// shorthand notation for concept, no require block.
+// makes use of the constexpr function, leveraging default parameter to stay in
+// an unevaluated context.
+concept n_sized = (constexpr_function_in_concept_data::get_size<T>() == N);
+
+// alternative notation emphasizing that constraints parameter stay in an
+// unevaluated context; the requires clause does not evaluate T (it has no
+// parameter)
+template <typename T, std::size_t N>
+concept n_sized_alt = requires {
+  requires constexpr_function_in_concept_data::get_size<T>()
+  == N;
+};
+
+// specifying the concept before an auto template parameter.
+// The const qualifier must be set before the auto keyword.
+void send_ping(const n_sized<1> auto &) {}
+void send_ping_alt(const n_sized<1> auto &) {}
+
+TEST_CASE("constexpr function in concept") {
+  std::array a{42};
+  send_ping(a);
+  send_ping_alt(a);
+
+  static_assert(n_sized<decltype(a), 1>);
+  static_assert(n_sized_alt<decltype(a), 1>);
 }

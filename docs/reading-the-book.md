@@ -65,3 +65,8 @@ A bunch of well thought static_assert should do the job.
 Actually, the Addable concept studied in the book can be implemented using some sort of TDD at compile time.
 
 TODO: write an article on the matter
+
+### 1.10 using constexpr function inside a concept
+
+const(expr|eval) functions are usable in a concept as soon as one doesn't use
+values used in the requirement definition
