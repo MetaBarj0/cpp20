@@ -87,21 +87,22 @@ TEST_CASE("requires expressions") {
   // REQUIRE(z == 5.0);
 }
 
+template <typename Arg>
+concept Addable = requires(Arg arg) {
+  { (arg + arg) }
+  noexcept->std::same_as<Arg>;
+};
+
 template <typename... Args>
-concept Addable = requires(Args... args) {
-  (... + args);
+concept Adder = requires(Args... args) {
   requires are_same_v<Args...>;
   requires sizeof...(Args) > 1;
-  { (... + args) }
-  noexcept->std::same_as<first_arg_t<Args...>>;
-  typename first_arg<Args...>::type;
-  first_arg<Args...>::value;
 };
 
 struct concept_data {
-  template <typename... Args>
-  requires Addable<Args...>
-  auto add(Args &&...args) { return (... + args); }
+  auto add(Addable auto &&...args) requires Adder<decltype(args)...> {
+    return (... + args);
+  }
 };
 
 TEST_CASE("creating a concept") {
