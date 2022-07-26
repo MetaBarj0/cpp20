@@ -123,7 +123,8 @@ struct constexpr_function_in_concept_data {
   // consteval function with default argument for template type parameter. Easy
   // usage in the constraint definition.
   // Moreover, keep the template type instance in an unevaluated context.
-  static consteval auto get_size(const auto &container = {}) {
+  // using constrained auto return type syntax
+  static consteval std::integral auto get_size(const auto &container = {}) {
     return container.size();
   }
 };
