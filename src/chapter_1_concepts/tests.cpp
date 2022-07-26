@@ -157,3 +157,32 @@ TEST_CASE("constexpr function in concept") {
   static_assert(n_sized<decltype(a), 1>);
   static_assert(n_sized_alt<decltype(a), 1>);
 }
+
+template <typename T>
+concept validable = requires(const T t) {
+  t.validate();
+};
+
+struct foo {
+  void validate() {}
+};
+
+struct bar {};
+
+template <typename T> struct validator {
+  void proceed(const T &t) {
+    if constexpr (validable<T>)
+      t.validate();
+  }
+};
+
+TEST_CASE("using constraint in function") {
+  foo my_foo;
+  bar my_bar;
+
+  validator<bar> bar_validator;
+  bar_validator.proceed(my_bar);
+
+  validator<foo> foo_validator;
+  foo_validator.proceed(my_foo);
+}

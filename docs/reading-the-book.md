@@ -70,3 +70,8 @@ TODO: write an article on the matter
 
 const(expr|eval) functions are usable in a concept as soon as one doesn't use
 values used in the requirement definition
+
+### 1.12.1 using concept in function body
+
+Thanks to `if constexpr` construction, one can verify constraints at compile time
+and generate only the necessary code.
