@@ -123,3 +123,11 @@ compiler deduces the source location of the used concept are different and
 deduces that concepts are different, preventing subsumption. Weird huh? A way
 to see things more simply is to consider using `not` with a concept the same
 thing as specifying ad-hoc requirements.
+
+Open question, not from the book:
+Is it possible to constrain function, expecially member function to be
+qualified with either one or a combination of const, volatile and ref
+qualifiers?
+The answer is yes and
+
+TODO: write an article about member function qualifiers and concepts

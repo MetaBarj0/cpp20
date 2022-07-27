@@ -2,6 +2,8 @@
 #include <array>
 #include <catch2/catch_test_macros.hpp>
 #include <concepts>
+#include <format>
+#include <iostream>
 #include <iterator>
 #include <list>
 #include <type_traits>
@@ -336,3 +338,64 @@ TEST_CASE("playing with containers") {
                      expected.cend()));
 }
 } // namespace
+namespace qualifier_constraining {
+struct foo {
+  foo() = default;
+  foo(const foo &) = delete;
+  foo(foo &&) = default;
+
+  foo &operator=(const foo &) = delete;
+  foo &operator=(foo &) = default;
+
+  foo &self() & {
+    std::cerr << "lvalue_ref self" << std::endl;
+    return *this;
+  }
+  // Comment this one and the compiler will insult you the very right way!
+  const foo &self() const & {
+    std::cerr << "const_lvalue_ref self" << std::endl;
+    return *this;
+  }
+  // Comment this one and the above thus the compiler will insult you the very
+  // right way! if you comment only this one, the const lvalue ref promotion
+  // will take over and generate the proper code
+  foo self() && {
+    std::cerr << "value self" << std::endl;
+    return foo{std::move(*this)};
+  }
+
+  constexpr bool operator==(foo &) & { return true; }
+  constexpr bool operator==(const foo &) const & { return true; }
+  constexpr bool operator==(foo &&) && { return true; }
+};
+
+template <typename T>
+concept has_lvalue_ref_self = requires(T &t) {
+  { t.self() } -> std::same_as<T &>;
+};
+
+template <typename T>
+concept has_const_lvalue_ref_self = requires(const T &t) {
+  { t.self() } -> std::same_as<const T &>;
+};
+
+template <typename T>
+concept has_value_self = requires(T t) {
+  { t.self() } -> std::same_as<std::remove_cv_t<T>>;
+};
+
+template <typename T>
+requires has_lvalue_ref_self<T> and has_const_lvalue_ref_self<T> and
+    has_value_self<T>
+void play(T &&t) { t.self(); }
+
+TEST_CASE("playing with qualifiers") {
+  foo lvalue_foo;
+  const foo const_lvalue_foo;
+
+  REQUIRE(lvalue_foo.self() == lvalue_foo);
+  REQUIRE(const_lvalue_foo.self() == const_lvalue_foo);
+  REQUIRE(foo{}.self() == foo{});
+}
+
+} // namespace qualifier_constraining
