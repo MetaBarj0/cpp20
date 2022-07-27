@@ -76,3 +76,50 @@ values used in the requirement definition
 Thanks to `if constexpr` construction, one can verify constraints at compile time
 and generate only the necessary code.
 We can even conditionaly generate constructors and destructors.
+Concept subsumption is resolved using concept only, not ad-hoc constraints
+using type traits for instance. Using ad-hoc constraints prevent the compiler
+to correctly subsume constraints and may lead to ambiguity errors. One can see
+subsumable constraints defined with concept as Venn diagrams:
+
+```
++-C2-----+
+|        |
+| +-C1-+ |
+| |    | |
+| +----+ |
+|        |
++--------+
+```
+One can imagine the free space in the boxes as constraints (either from compile
+time values or other concepts).
+Designing concept as above is ok for the compiler to subsume them correctly.
+
+On the other hand, designing concept like in the following diagram does not
+allow the compiler to resolve symbols without ambiguity:
+
+```
++-C2---+
+|      |
+|    +---C1-+
+|    |      |
+|    +------+
+|      |
++------+
+```
+
+Above we can see C1 and C2 concepts have only a part of their constraint in
+common, making subsumption impossible as they are partially disjoint.
+
+Similarly, using the logical `not` to apply constraints with concept is not recommended:
+
+```
++-C2-+ +-not C2 aka. all the universe but C1-+
+|    | |                                     |
++----+ +-------------------------------------+
+```
+
+Morever, specfying `not` several times at different locations makes the
+compiler deduces the source location of the used concept are different and
+deduces that concepts are different, preventing subsumption. Weird huh? A way
+to see things more simply is to consider using `not` with a concept the same
+thing as specifying ad-hoc requirements.
