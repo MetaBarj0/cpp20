@@ -253,3 +253,42 @@ TEST_CASE("conditional ctor/dtor") {
 }
 
 } // namespace
+namespace {
+template <typename T, typename U>
+concept is_same_ordered = std::is_same_v<T, U>;
+
+// to remove ambiguity, regarding ordering
+template <typename T, typename U>
+concept is_same = is_same_ordered<T, U> and is_same_ordered<U, T> and
+    is_same_ordered<U, U> and is_same_ordered<T, T>;
+
+template <typename...>
+concept always_true = true;
+
+template <typename A, typename B>
+requires is_same<A, B>
+auto subsuming_add(A &&a, B &&b) { return a + b; }
+
+template <typename A, typename B>
+requires is_same<A, A>
+auto subsuming_add(A &&a, A &&b) { return a + b; }
+
+template <typename A, typename B>
+requires is_same<B, A> and always_true<B>
+auto subsuming_add(A &&a, B &&b) { return a + b; }
+
+template <typename A, typename B>
+requires is_same<B, B> and always_true<B>
+auto subsuming_add(B &&a, B &&b) { return a + b; }
+
+template <typename A, typename B>
+requires is_same<A, A> and always_true<A>
+auto subsuming_add(A &&a, A &&b) { return a + b; }
+
+TEST_CASE("subsumption exploring") {
+  constexpr int a = 1, b = 2;
+
+  // the most constrained one will be selected
+  subsuming_add(a, b);
+}
+} // namespace
