@@ -186,3 +186,71 @@ TEST_CASE("using constraint in function") {
   validator<foo> foo_validator;
   foo_validator.proceed(my_foo);
 }
+
+namespace {
+struct copyable {
+  copyable() = default;
+
+  copyable(const copyable &) = default;
+  copyable &operator=(const copyable &) = default;
+
+  ~copyable() {}
+};
+
+struct non_copyable {
+  non_copyable() = default;
+
+  non_copyable(const non_copyable &) = delete;
+  non_copyable &operator=(const non_copyable &) = delete;
+
+  ~non_copyable() = default;
+};
+
+struct com_like {
+  ~com_like() {}
+  void release() {}
+};
+
+template <typename T>
+concept has_release = requires(T t) {
+  t.release();
+};
+
+template <typename T> struct wrapper {
+  wrapper() requires std::is_default_constructible_v<T>
+  = default;
+
+  wrapper(const wrapper &) requires std::is_copy_assignable_v<T>
+  = default;
+
+  ~wrapper()  = default;
+
+  ~wrapper() requires(not std::is_trivially_destructible_v<T> and
+                      not has_release<T>) {
+    t.~T();
+  }
+
+  ~wrapper() requires(not std::is_trivially_destructible_v<T> and
+                      has_release<T>) {
+    t.release();
+    t.~T();
+  }
+
+private:
+  T t;
+};
+
+TEST_CASE("conditional ctor/dtor") {
+  wrapper<copyable> copyable_wrapper;
+  wrapper<non_copyable> non_copyable_wrapper;
+  (void)non_copyable_wrapper;
+  wrapper<com_like> com_wrapper;
+
+  decltype(auto) another_copy = copyable_wrapper;
+  (void)another_copy;
+
+  // does not compile, because of no matching ctor
+  // decltype(auto) another_copy = non_copyable_wrapper;
+}
+
+} // namespace

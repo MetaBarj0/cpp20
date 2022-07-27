@@ -75,3 +75,4 @@ values used in the requirement definition
 
 Thanks to `if constexpr` construction, one can verify constraints at compile time
 and generate only the necessary code.
+We can even conditionaly generate constructors and destructors.
