@@ -1,7 +1,11 @@
+#include <algorithm>
 #include <array>
 #include <catch2/catch_test_macros.hpp>
 #include <concepts>
+#include <iterator>
+#include <list>
 #include <type_traits>
+#include <vector>
 
 template <typename T, typename... TS>
 constexpr inline bool are_same_v = std::conjunction_v<std::is_same<T, TS>...>;
@@ -290,5 +294,45 @@ TEST_CASE("subsumption exploring") {
 
   // the most constrained one will be selected
   subsuming_add(a, b);
+}
+} // namespace
+
+namespace {
+template <typename T>
+concept has_sort = requires(T &t) {
+  { t.sort() } -> std::same_as<void>;
+};
+
+template <typename T>
+concept is_sortable = requires(T &t) {
+  { std::begin(t) } -> std::random_access_iterator;
+  { std::end(t) } -> std::random_access_iterator;
+  std::sort(std::begin(t), std::end(t));
+};
+
+template <typename Container> Container sort(Container container) {
+  if constexpr (has_sort<Container>)
+    container.sort();
+
+  if constexpr (is_sortable<Container>)
+    std::sort(std::begin(container), std::end(container));
+
+  return container;
+}
+
+TEST_CASE("playing with containers") {
+  std::vector<int> v{{12, 54, 1, 0, 42}};
+  auto sorted_v = sort(v);
+
+  std::list<int> l{{12, 54, 1, 0, 42}};
+  auto sorted_l = sort(l);
+
+  constexpr std::array expected{0, 1, 12, 42, 54};
+
+  REQUIRE(std::equal(sorted_v.cbegin(), sorted_v.cend(), expected.cbegin(),
+                     expected.cend()));
+
+  REQUIRE(std::equal(sorted_l.cbegin(), sorted_l.cend(), expected.cbegin(),
+                     expected.cend()));
 }
 } // namespace
