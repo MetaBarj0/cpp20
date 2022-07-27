@@ -216,6 +216,9 @@ concept has_release = requires(T t) {
   t.release();
 };
 
+template <typename T>
+concept not_trivially_destructible = not std::is_trivially_destructible_v<T>;
+
 template <typename T> struct wrapper {
   wrapper() requires std::is_default_constructible_v<T>
   = default;
@@ -223,18 +226,14 @@ template <typename T> struct wrapper {
   wrapper(const wrapper &) requires std::is_copy_assignable_v<T>
   = default;
 
-  ~wrapper()  = default;
+  ~wrapper() = default;
 
-  ~wrapper() requires(not std::is_trivially_destructible_v<T> and
-                      not has_release<T>) {
-    t.~T();
-  }
-
-  ~wrapper() requires(not std::is_trivially_destructible_v<T> and
-                      has_release<T>) {
+  ~wrapper() requires not_trivially_destructible<T> and has_release<T> {
     t.release();
     t.~T();
   }
+
+  ~wrapper() requires not_trivially_destructible<T> { t.~T(); }
 
 private:
   T t;
