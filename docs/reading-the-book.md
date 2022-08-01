@@ -133,3 +133,10 @@ The answer is yes and
 TODO: write an article about member function qualifiers and concepts
 
 ## Chapter 2: coroutines
+
+A coroutine is a function that can suspend itself and be resumed by an using
+function.
+C++ coroutines are stackless, means their frame are apparently allocated on the
+heap. (performance issues? They might be stack allocated when their state size
+is known at compile time or when the lifecycle of the coroutine is less than
+the using function?)
